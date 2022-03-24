@@ -69,12 +69,13 @@ const addToCart = async() => {
             target: { tabId: tab.id },
             func: addItem
         });
-        await sleep(500)
-        await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: changeQtd,
-            args: [qtd]
-        });
+        await sleep(900)
+        if (qtd != 1)
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: changeQtd,
+                args: [qtd]
+            });
         await sleep(200)
 
     }
