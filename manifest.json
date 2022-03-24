@@ -4,8 +4,9 @@
     "version": "1.0",
     "manifest_version": 3,
 
-    "permissions": ["scripting", "tabs", "activeTab", "storage"],
+    "permissions": ["scripting", "tabs", "activeTab"],
     "action": {
         "default_popup": "popup.html"
-    }
+    },
+    "icons": { "128": "128.png" }
 }

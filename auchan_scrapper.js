@@ -47,10 +47,12 @@ const sleep = (milliseconds) => {
 }
 const changeQtd = async(qtd) => {
     let qtdDiv = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > input')
-    let minusButton = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > div.input-group-prepend > button')
-    let plusButton = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > div.input-group-append > button')
-    qtdDiv.value = qtd
+    qtdDiv.value = parseInt(qtdDiv.value) + parseInt(qtd)
     qtdDiv.dispatchEvent(new Event('change'));
+}
+
+const isLoaded = () => {
+    return !!document.querySelector('#maincontent > div.row.no-gutters.auc-pdp__header > div > div.row.no-gutters > div > h1')
 }
 
 const addToCart = async() => {
@@ -64,7 +66,21 @@ const addToCart = async() => {
         chrome.tabs.update(tab.id, {
             url: url
         })
-        await sleep(1500)
+        let hasLoaded = false
+        while (!hasLoaded) {
+            chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: isLoaded
+            }, (injectionResults) => {
+                if (resList.value != "")
+                    resList.value = ""
+
+                for (let injectionResult of injectionResults)
+                    hasLoaded = injectionResult.result
+            })
+            await sleep(100)
+        }
+
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: addItem
