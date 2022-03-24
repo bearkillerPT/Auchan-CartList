@@ -1,6 +1,7 @@
 const resList = document.getElementById('resList')
 const getListButton = document.getElementById("getList");
 const copyListButton = document.getElementById("copyList");
+const addToCartButton = document.getElementById("addToCart");
 
 function getItems() {
     let items = document.querySelectorAll("#auc-minicart-panel > div.auc-panel__content > div")
@@ -18,22 +19,66 @@ function getItems() {
 
 const getCart = async() => {
     const tab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
-    chrome.webNavigation
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: getItems
     }, (injectionResults) => {
-        if (resList.innerHTML != "") resList.innerHTML = ""
+        if (resList.value != "")
+            resList.value = ""
+
         for (let injectionResult of injectionResults)
             for (let item of injectionResult.result) {
-                resList.innerHTML += item.qtd + " * " + item.url + "\n"
+                resList.value += item.qtd + " * " + item.url + "\n"
             }
+        resList.value = resList.value.slice(0, -1)
     });
 }
 
 const copyList = () => {
-    navigator.clipboard.writeText(resList.innerHTML);
+    navigator.clipboard.writeText(resList.value);
 }
 
+const addItem = async() => {
+    let addButton = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > button')
+    addButton.click()
+}
+const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+const changeQtd = async(qtd) => {
+    let qtdDiv = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > input')
+    let minusButton = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > div.input-group-prepend > button')
+    let plusButton = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > div.input-group-append > button')
+    qtdDiv.value = qtd
+    qtdDiv.dispatchEvent(new Event('change'));
+}
+
+const addToCart = async() => {
+    const tab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
+    let listText = resList.value;
+    let cart = listText.split('\n')
+    for (let item of cart) {
+        let values = item.split(' * ')
+        let qtd = values[0]
+        let url = values[1]
+        chrome.tabs.update(tab.id, {
+            url: url
+        })
+        await sleep(1500)
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: addItem
+        });
+        await sleep(500)
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: changeQtd,
+            args: [qtd]
+        });
+        await sleep(200)
+
+    }
+}
 getListButton.onclick = getCart
 copyListButton.onclick = copyList
+addToCartButton.onclick = addToCart

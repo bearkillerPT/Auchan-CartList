@@ -1,7 +1,9 @@
 #resList {
     flex: 1;
     background-color: whitesmoke;
-    overflow: scroll;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .container {
