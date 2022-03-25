@@ -1,7 +1,7 @@
 {
     "name": "Auchan2List",
     "description": "Exporte a sua lista de compras na auchan para um documento de texto seguindo o seguinte formate:\nquantidade * url_do_produto",
-    "version": "1.0",
+    "version": "1.1",
     "manifest_version": 3,
 
     "permissions": ["scripting", "tabs", "activeTab"],

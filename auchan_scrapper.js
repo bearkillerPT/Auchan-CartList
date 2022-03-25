@@ -47,12 +47,17 @@ const sleep = (milliseconds) => {
 }
 const changeQtd = async(qtd) => {
     let qtdDiv = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > input')
-    qtdDiv.value = parseInt(qtdDiv.value) + parseInt(qtd)
+    if (parseInt(qtdDiv.value) != 1)
+        qtdDiv.value = parseInt(qtdDiv.value) + parseInt(qtd)
+    else
+        qtdDiv.value = qtd
     qtdDiv.dispatchEvent(new Event('change'));
 }
 
 const isLoaded = () => {
-    return !!document.querySelector('#maincontent > div.row.no-gutters.auc-pdp__header > div > div.row.no-gutters > div > h1')
+    let addItemButton = !!document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > button')
+    let chngQtdButton = !!document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > input')
+    return addItemButton || chngQtdButton
 }
 
 const addToCart = async() => {
@@ -78,21 +83,22 @@ const addToCart = async() => {
                 for (let injectionResult of injectionResults)
                     hasLoaded = injectionResult.result
             })
-            await sleep(100)
+            await sleep(250)
         }
+        await sleep(400)
 
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: addItem
         });
-        await sleep(900)
+        await sleep(400)
         if (qtd != 1)
             await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 func: changeQtd,
                 args: [qtd]
             });
-        await sleep(200)
+        await sleep(400)
 
     }
 }
