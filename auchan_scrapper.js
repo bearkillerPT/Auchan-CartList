@@ -72,6 +72,8 @@ const addToCart = async() => {
     const tab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
     let listText = resList.value;
     let cart = listText.split('\n')
+    var hasLoaded = false
+
     for (let item of cart) {
         let values = item.split(' * ')
         let qtd = values[0]
@@ -79,7 +81,7 @@ const addToCart = async() => {
         await chrome.tabs.update(tab.id, {
             url: url
         })
-        let hasLoaded = false
+        await sleep(250)
         while (!hasLoaded) {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
@@ -89,14 +91,14 @@ const addToCart = async() => {
             })
             await sleep(250)
         }
-        await sleep(400)
+        await sleep(250)
 
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: addItem
         });
-        await sleep(250)
         hasLoaded = false
+        await sleep(250)
         while (!hasLoaded) {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
