@@ -54,7 +54,15 @@ const changeQtd = async(qtd) => {
     qtdDiv.dispatchEvent(new Event('change'));
 }
 
-const isLoaded = () => {
+const isChangeQtdLoaded = () => {
+    let addItemButton = document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > button')
+    let chngQtdButton = !!document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > input')
+    if (!!addItemButton)
+        return addItemButton.disabled
+    return chngQtdButton
+}
+
+const isPageLoaded = () => {
     let addItemButton = !!document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > button')
     let chngQtdButton = !!document.querySelector('#maincontent > div.container.product-detail.product-wrapper.auc-pdp__body > div.row.no-gutters.auc-pdp__upper-section.auc-pdp__upper-section--grocery > div.col-12.col-md-7.col-xl-6.auc-pdp__right-section > div > div.auc-pdp__middle-section.row.no-gutters > div.prices-add-to-cart-actions.col-12.col-xl-5 > div > div > div > div > div.auc-qty-selector__container > div > input')
     return addItemButton || chngQtdButton
@@ -68,20 +76,16 @@ const addToCart = async() => {
         let values = item.split(' * ')
         let qtd = values[0]
         let url = values[1]
-        chrome.tabs.update(tab.id, {
+        await chrome.tabs.update(tab.id, {
             url: url
         })
         let hasLoaded = false
         while (!hasLoaded) {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: isLoaded
+                func: isPageLoaded
             }, (injectionResults) => {
-                if (resList.value != "")
-                    resList.value = ""
-
-                for (let injectionResult of injectionResults)
-                    hasLoaded = injectionResult.result
+                hasLoaded = injectionResults[0].result
             })
             await sleep(250)
         }
@@ -91,13 +95,23 @@ const addToCart = async() => {
             target: { tabId: tab.id },
             func: addItem
         });
-        await sleep(400)
-        if (qtd != 1)
-            await chrome.scripting.executeScript({
+        await sleep(250)
+        hasLoaded = false
+        while (!hasLoaded) {
+            chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: changeQtd,
-                args: [qtd]
-            });
+                func: isChangeQtdLoaded
+            }, (injectionResults) => {
+                hasLoaded = injectionResults[0].result
+            })
+            await sleep(250)
+        }
+        await sleep(250)
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: changeQtd,
+            args: [qtd]
+        });
         await sleep(400)
 
     }
